@@ -1,0 +1,9 @@
+FROM ubuntu
+#Maintiner
+Maintiner "devOps Dev team"
+#Run commands
+Run apt-get update -y && apt-get install nginx -y
+#Exposing port 80
+Expose 80
+#starting nginx
+CMD ["/usr/sbin/nginx"]
