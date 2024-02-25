@@ -5,21 +5,19 @@ provider "aws" {
 
 }
 
-# VPC Block
-
-resource "aws_vpc" "myvpc1" {
+resource "aws_vpc" "main" {
   cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
 
   tags = {
-    Name = "main"
+    Name = "Core-vpc"
   }
 }
 
 # Internet Gatway block
 
 resource "aws_internet_gateway" "gw1" {
-  vpc_id = aws_vpc.myvpc1.id
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "main_igw"
@@ -27,17 +25,17 @@ resource "aws_internet_gateway" "gw1" {
 }
 
 resource "aws_subnet" "public" {
-  vpc_id     = aws_vpc.myvpc1.id
+  vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
 
   tags = {
-    Name = "Main"
+    Name = "public"
   }
 }
 
 # Route-Table Block
-resource "aws_route_table" "rt1" {
-  vpc_id = aws_vpc.myvpc1.id
+resource "aws_route_table" "myrt1" {
+  vpc_id = aws_vpc.main.id
 
   route = []
 
@@ -46,52 +44,46 @@ resource "aws_route_table" "rt1" {
   }
 }
 
+
 #Route Block
 
 resource "aws_route" "route1" {
-  route_table_id         = aws_internet_gateway.gw1.id
+  route_table_id         = aws_route_table.myrt1.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.gw1.id
-  depends_on             = [aws_route_table.rt1]
+   gateway_id             = aws_internet_gateway.gw1.id
+  depends_on             = [aws_route_table.myrt1]
 
 }
+
 
 # Route-table-association
 
 resource "aws_route_table_association" "a" {
   subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.rt1.id
+  route_table_id = aws_route_table.myrt1.id
 }
+
 
 # Security group
 
-resource "aws_security_group" "sg1" {
-  name        = "sg1"
-  description = "Allow all inbound traffic security group"
-  vpc_id      = aws_vpc.myvpc1.id
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name = "mySG"
-  }
-
-  ingress = {
+  ingress {
     #for incoming 
     description = "incoming from anywhere"
     from_port   = 0
     to_port     = 0
     protocol    = -1
-    cidr_block  = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  egress = { # for outgoning 
-    from_port  = 0
-    to_port    = 0
-    protocol   = -1
-    cidr_block = ["0.0.0.0/0"]
-
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
-
-
 }
 
 # EC2 Block
