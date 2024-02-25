@@ -49,9 +49,9 @@ resource "aws_route_table" "rt1" {
 #Route Block
 
 resource "aws_route" "route1" {
-  route_table_id         = aws_internet_gateway.gw1
+  route_table_id         = aws_internet_gateway.gw1.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.gw1
+  gateway_id             = aws_internet_gateway.gw1.id
   depends_on             = [aws_route_table.rt1]
 
 }
